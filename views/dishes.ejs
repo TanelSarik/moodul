@@ -1,0 +1,26 @@
+<%- include('partials/head', { title }) %>
+  <body class="bg-[#fff3f3]">
+    <%- include('partials/header') %>
+
+    <main class="bg-[#fff3f3] px-6 md:px-8 pt-10 md:pt-12 pb-20 md:pb-24">
+      <section class="max-w-[1250px] mx-auto">
+        <p class="border border-black/30 px-4 py-2 text-black/60 text-sm">
+          Valik Midnight Rameni roogi andmebaasist.
+        </p>
+
+        <div class="mt-16 md:mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16 md:gap-y-20">
+          <% dishes.forEach((dish) => { %>
+            <article class="text-center">
+              <img src="<%= firstImage(dish.images) %>" alt="<%= dish.name %>" class="h-[330px] sm:h-[380px] lg:h-[410px] w-full object-cover" />
+              <h2 class="mt-4 text-xl font-black"><%= dish.name %></h2>
+              <p class="mt-1 text-sm"><%= money(dish.price_cents) %> · vürtsisus <%= dish.spiciness %>/5</p>
+              <a href="/dish/<%= dish.slug %>" class="mt-2 inline-block bg-[#2c0d20] text-white px-4 py-1 text-xs">learn more</a>
+            </article>
+          <% }) %>
+        </div>
+      </section>
+    </main>
+
+    <%- include('partials/footer') %>
+  </body>
+</html>

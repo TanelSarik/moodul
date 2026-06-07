@@ -1,0 +1,25 @@
+<%- include('../partials/head', { title }) %>
+  <body class="bg-slate-100">
+    <main class="min-h-screen flex items-center justify-center px-6">
+      <form action="/admin/login" method="post" class="w-full max-w-sm bg-white border border-slate-300 p-6" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <h1 class="text-2xl font-bold mb-6">Admin login</h1>
+
+        <% if (errors.form) { %>
+          <p class="mb-4 bg-red-100 text-red-800 px-3 py-2"><%= errors.form %></p>
+        <% } %>
+
+        <label for="email" class="block font-semibold mb-1">E-post</label>
+        <input id="email" name="email" type="email" value="<%= values.email %>" class="w-full border px-3 py-2 mb-1" />
+        <%- include('../partials/field-error', { errors, field: 'email' }) %>
+
+        <label for="password" class="block font-semibold mb-1 mt-4">Parool</label>
+        <input id="password" name="password" type="password" class="w-full border px-3 py-2 mb-1" />
+        <%- include('../partials/field-error', { errors, field: 'password' }) %>
+
+        <button type="submit" class="mt-6 w-full bg-slate-900 text-white px-4 py-2">Logi sisse</button>
+        <a href="/" class="mt-4 block text-center text-sm underline">Tagasi lehele</a>
+      </form>
+    </main>
+  </body>
+</html>

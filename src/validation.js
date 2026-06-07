@@ -57,7 +57,7 @@ export function validateDish(body) {
     name: clean(body.name),
     slug: clean(body.slug).toLowerCase(),
     description: clean(body.description),
-    image_url: clean(body.image_url),
+    images: clean(body.images),
     price_cents: Number.isFinite(price) ? Math.round(price * 100) : NaN,
     spiciness,
     ingredients: clean(body.ingredients),
@@ -77,8 +77,16 @@ export function validateDish(body) {
     errors.description = 'Kirjeldus peab olema 10-2000 märki.';
   }
 
-  if (!values.image_url.startsWith('/') && !values.image_url.startsWith('https://')) {
-    errors.image_url = 'Pilt peab olema kohalik tee (/images/...) või HTTPS URL.';
+  const imageUrls = values.images
+    .split(',')
+    .map((image) => image.trim())
+    .filter(Boolean);
+
+  if (
+    imageUrls.length === 0 ||
+    imageUrls.some((image) => !image.startsWith('/') && !image.startsWith('https://'))
+  ) {
+    errors.images = 'Lisa vähemalt üks pilt. Iga pilt peab olema kohalik tee (/images/...) või HTTPS URL.';
   }
 
   if (!Number.isInteger(values.price_cents) || values.price_cents < 1 || values.price_cents > 100000) {
@@ -109,7 +117,7 @@ export function dishToFormValues(dish = {}) {
     name: dish.name ?? '',
     slug: dish.slug ?? '',
     description: dish.description ?? '',
-    image_url: dish.image_url ?? '',
+    images: dish.images ?? '',
     price: Number.isInteger(dish.price_cents) ? (dish.price_cents / 100).toFixed(2) : '',
     spiciness: dish.spiciness ?? 0,
     ingredients: dish.ingredients ?? '',

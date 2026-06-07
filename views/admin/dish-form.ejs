@@ -1,0 +1,67 @@
+<%- include('../partials/head', { title }) %>
+  <body class="bg-slate-100">
+    <main class="max-w-3xl mx-auto px-6 py-10">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <h1 class="text-3xl font-bold"><%= title %></h1>
+        <a href="/admin" class="underline">Tagasi admin vaatesse</a>
+      </div>
+
+      <form action="<%= action %>" method="post" class="bg-white border border-slate-300 p-5 grid gap-4" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+        <div>
+          <label for="name" class="block font-semibold mb-1">Nimi</label>
+          <input id="name" name="name" type="text" value="<%= values.name %>" class="w-full border px-3 py-2" />
+          <%- include('../partials/field-error', { errors, field: 'name' }) %>
+        </div>
+
+        <div>
+          <label for="slug" class="block font-semibold mb-1">Slug</label>
+          <input id="slug" name="slug" type="text" value="<%= values.slug %>" placeholder="spicy-ramen" class="w-full border px-3 py-2" />
+          <%- include('../partials/field-error', { errors, field: 'slug' }) %>
+        </div>
+
+        <div>
+          <label for="description" class="block font-semibold mb-1">Kirjeldus</label>
+          <textarea id="description" name="description" rows="5" class="w-full border px-3 py-2"><%= values.description %></textarea>
+          <%- include('../partials/field-error', { errors, field: 'description' }) %>
+        </div>
+
+        <div>
+          <label for="images" class="block font-semibold mb-1">Pildid</label>
+          <input id="images" name="images" type="text" value="<%= values.images %>" placeholder="/images/ramen-1.webp.png, /images/ramen-2.webp.png" class="w-full border px-3 py-2" />
+          <p class="text-sm text-slate-500 mt-1">Lisa üks või mitu komaga eraldatud kohalikku teed või HTTPS URL-i.</p>
+          <%- include('../partials/field-error', { errors, field: 'images' }) %>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="price" class="block font-semibold mb-1">Hind</label>
+            <input id="price" name="price" type="number" min="0.01" step="0.01" value="<%= values.price %>" class="w-full border px-3 py-2" />
+            <%- include('../partials/field-error', { errors, field: 'price' }) %>
+          </div>
+
+          <div>
+            <label for="spiciness" class="block font-semibold mb-1">Vürtsisus 0-5</label>
+            <input id="spiciness" name="spiciness" type="number" min="0" max="5" step="1" value="<%= values.spiciness %>" class="w-full border px-3 py-2" />
+            <%- include('../partials/field-error', { errors, field: 'spiciness' }) %>
+          </div>
+        </div>
+
+        <div>
+          <label for="ingredients" class="block font-semibold mb-1">Koostis</label>
+          <textarea id="ingredients" name="ingredients" rows="3" class="w-full border px-3 py-2"><%= values.ingredients %></textarea>
+          <%- include('../partials/field-error', { errors, field: 'ingredients' }) %>
+        </div>
+
+        <div>
+          <label for="allergens" class="block font-semibold mb-1">Allergeenid</label>
+          <textarea id="allergens" name="allergens" rows="3" class="w-full border px-3 py-2"><%= values.allergens %></textarea>
+          <%- include('../partials/field-error', { errors, field: 'allergens' }) %>
+        </div>
+
+        <button type="submit" class="bg-slate-900 text-white px-4 py-2"><%= submitLabel %></button>
+      </form>
+    </main>
+  </body>
+</html>

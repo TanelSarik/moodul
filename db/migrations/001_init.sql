@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS dishes (
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   description TEXT NOT NULL,
-  image_url TEXT NOT NULL,
+  images TEXT NOT NULL,
   price_cents INTEGER NOT NULL,
   spiciness INTEGER NOT NULL CHECK (spiciness BETWEEN 0 AND 5),
   ingredients TEXT NOT NULL,

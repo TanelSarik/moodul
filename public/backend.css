@@ -1,0 +1,17 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+button,
+a {
+  transition: opacity 150ms ease;
+}
+
+button:hover,
+a:hover {
+  opacity: 0.85;
+}

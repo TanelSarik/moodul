@@ -1,0 +1,15 @@
+<%- include('partials/head', { title }) %>
+  <body class="bg-[#fff3f3]">
+    <%- include('partials/header') %>
+
+    <main class="min-h-[500px] px-6 py-20">
+      <section class="max-w-[800px] mx-auto">
+        <h1 class="text-4xl font-black text-[#180707]"><%= title %></h1>
+        <p class="mt-4 text-black/70"><%= message %></p>
+        <a href="/" class="mt-8 inline-block bg-[#2c0d20] text-white px-6 py-2 text-sm">Avalehele</a>
+      </section>
+    </main>
+
+    <%- include('partials/footer') %>
+  </body>
+</html>
