@@ -12,6 +12,7 @@ import {
   validateContact,
   validateDish,
   validateLogin,
+  validateReservation,
 } from './src/validation.js';
 
 dotenv.config();
@@ -34,6 +35,36 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : 0);
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.get('/images/:filename', (req, res) => {
+  const label = req.params.filename
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+  const escapedLabel = label
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+
+  res.type('image/svg+xml');
+  res.set('Cache-Control', 'public, max-age=300');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700" role="img" aria-label="${escapedLabel}">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fff3f3"/>
+      <stop offset="100%" stop-color="#cdb2cf"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="700" fill="url(#bg)"/>
+  <circle cx="450" cy="315" r="150" fill="#2c0d20" opacity="0.9"/>
+  <circle cx="450" cy="315" r="105" fill="#fff3f3"/>
+  <path d="M340 310c55 35 165 35 220 0M350 355c50 26 150 26 200 0" fill="none" stroke="#8d79c7" stroke-width="18" stroke-linecap="round"/>
+  <text x="450" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#180707">${escapedLabel}</text>
+  <text x="450" y="610" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#180707" opacity="0.7">Midnight Ramen</text>
+</svg>`);
+});
 app.use('/assets', express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: false }));
 app.use(
@@ -67,6 +98,9 @@ const adminByEmailStatement = db.prepare('SELECT * FROM admins WHERE email = ?')
 const contactListStatement = db.prepare(
   'SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 20',
 );
+const reservationListStatement = db.prepare(
+  'SELECT * FROM reservations ORDER BY reservation_date ASC',
+);
 
 function money(cents) {
   return `${(cents / 100).toFixed(2)} €`;
@@ -77,6 +111,28 @@ function firstImage(images) {
     .split(',')
     .map((image) => image.trim())
     .filter(Boolean)[0] || '/images/ramen-1.webp.png';
+}
+
+function buildReservationDays(year, month, selectedDate = '') {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const reservations = reservationListStatement.all();
+  const reservedDates = new Set(reservations.map((reservation) => reservation.reservation_date));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const calendarDate = new Date(`${date}T12:00:00`);
+
+    return {
+      day,
+      date,
+      reserved: reservedDates.has(date),
+      past: calendarDate < today,
+      selected: date === selectedDate,
+    };
+  });
 }
 
 function renderDishForm(res, options) {
@@ -134,7 +190,68 @@ app.get('/dish/:slug', (req, res) => {
 });
 
 app.get(['/reservations', '/reservations.html'], (req, res) => {
-  res.render('reservations', { title: 'Reservations | Midnight Ramen' });
+  const now = new Date();
+  const year = Number.parseInt(req.query.year, 10) || now.getFullYear();
+  const month = Number.parseInt(req.query.month, 10) || now.getMonth() + 1;
+
+  res.render('reservations', {
+    title: 'Reservations | Midnight Ramen',
+    year,
+    month,
+    days: buildReservationDays(year, month),
+    values: { reservation_date: '', name: '', email: '', phone: '' },
+    errors: {},
+    success: false,
+  });
+});
+
+app.post('/reservations', (req, res) => {
+  const { values, errors } = validateReservation(req.body);
+  const date = values.reservation_date ? new Date(`${values.reservation_date}T12:00:00`) : new Date();
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  if (hasErrors(errors)) {
+    return res.status(422).render('reservations', {
+      title: 'Reservations | Midnight Ramen',
+      year,
+      month,
+      days: buildReservationDays(year, month, values.reservation_date),
+      values,
+      errors,
+      success: false,
+    });
+  }
+
+  try {
+    db.prepare(`
+      INSERT INTO reservations (reservation_date, name, email, phone)
+      VALUES (?, ?, ?, ?)
+    `).run(values.reservation_date, values.name, values.email, values.phone);
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(422).render('reservations', {
+        title: 'Reservations | Midnight Ramen',
+        year,
+        month,
+        days: buildReservationDays(year, month, values.reservation_date),
+        values,
+        errors: { reservation_date: 'See päev on juba broneeritud.' },
+        success: false,
+      });
+    }
+    throw error;
+  }
+
+  return res.render('reservations', {
+    title: 'Reservations | Midnight Ramen',
+    year,
+    month,
+    days: buildReservationDays(year, month),
+    values: { reservation_date: '', name: '', email: '', phone: '' },
+    errors: {},
+    success: true,
+  });
 });
 
 app.get(['/contact', '/contact.html'], (req, res) => {
@@ -231,6 +348,7 @@ app.get('/admin', requireAdmin, (req, res) => {
     title: 'Admin',
     dishes: dishListStatement.all(),
     messages: contactListStatement.all(),
+    reservations: reservationListStatement.all(),
     money,
   });
 });

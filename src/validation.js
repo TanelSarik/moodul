@@ -50,6 +50,39 @@ export function validateContact(body) {
   return { values, errors };
 }
 
+export function validateReservation(body) {
+  const values = {
+    reservation_date: clean(body.reservation_date),
+    name: clean(body.name),
+    email: clean(body.email).toLowerCase(),
+    phone: clean(body.phone),
+  };
+  const errors = {};
+  const date = new Date(`${values.reservation_date}T12:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(values.reservation_date) || Number.isNaN(date.getTime())) {
+    errors.reservation_date = 'Vali korrektne kuupäev.';
+  } else if (date < today) {
+    errors.reservation_date = 'Minevikku ei saa broneerida.';
+  }
+
+  if (values.name.length < 2 || values.name.length > 100) {
+    errors.name = 'Nimi peab olema 2-100 märki.';
+  }
+
+  if (!emailPattern.test(values.email) || values.email.length > 160) {
+    errors.email = 'Sisesta korrektne e-posti aadress.';
+  }
+
+  if (!phonePattern.test(values.phone)) {
+    errors.phone = 'Telefon võib sisaldada ainult numbreid, tühikuid ja märke +()- .';
+  }
+
+  return { values, errors };
+}
+
 export function validateDish(body) {
   const price = Number.parseFloat(String(body.price ?? '').replace(',', '.'));
   const spiciness = Number.parseInt(body.spiciness, 10);

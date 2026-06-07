@@ -63,6 +63,7 @@ Migratsioon asub failis `db/migrations/001_init.sql`. See loob tabelid:
 - `admins`
 - `dishes`
 - `contact_messages`
+- `reservations`
 - `migrations`
 
 Andmebaasi dumpi saab SQLite failist teha käsuga:
